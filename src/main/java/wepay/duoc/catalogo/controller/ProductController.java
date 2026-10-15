@@ -36,7 +36,7 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ProductResponse> create(@RequestBody ProductRequest request) {
         Product created = service.create(toProduct(request));
-        return ResponseEntity.created(URI.create("/api/products/" + created.getId())).body(toResponse(created));
+        return ResponseEntity.created(URI.create("/api/productos/" + created.getId())).body(toResponse(created));
     }
 
     @PutMapping("/{id}")
@@ -49,8 +49,8 @@ public class ProductController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (service.delete(id)) return ResponseEntity.noContent().build();
-        return ResponseEntity.notFound().build();
+		service.delete(id);
+		return ResponseEntity.noContent().build();
     }
 
     private Product toProduct(ProductRequest request) {

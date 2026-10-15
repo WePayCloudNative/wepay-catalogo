@@ -245,17 +245,18 @@ http://<IP_HOST>:8090
 
 ## 12) Carga del catálogo de ejemplo
 
-El proyecto incluye `src/main/resources/catalogo-gamer.json` y `ProductService` lo carga automáticamente al iniciar.
+El catálogo ahora se carga desde la base de datos H2 con el script `src/main/resources/data.sql`.
 
-Si quieres reenviar manualmente los productos con PowerShell:
+Al iniciar la aplicación, Spring crea las tablas y luego inserta los productos de ejemplo automáticamente.
 
-```powershell
-Get-Content src\main\resources\catalogo-gamer.json | ConvertFrom-Json | ForEach-Object { Invoke-RestMethod -Uri http://localhost:8090/api/products -Method Post -Body ($_ | ConvertTo-Json) -ContentType 'application/json' }
-```
+## 13) Restricción de borrado
 
-## 13) Notas
+No se puede eliminar un producto si existe un registro en `pedido_detalle` que lo esté usando.
 
-- La implementación actual guarda los productos en memoria; no es persistente.
-- Para producción, conviene reemplazar `ProductService` por un repositorio con base de datos.
+En el script de ejemplo se deja un pedido de prueba asociado al producto `1`, para validar el bloqueo.
+
+## 14) Notas
+
+- La implementación ya no depende del JSON para arrancar el catálogo.
 - Si ves caracteres extraños, revisa que la terminal use UTF-8.
 - La app está configurada para Java 25 y para escuchar en `0.0.0.0` en el puerto `8090`.

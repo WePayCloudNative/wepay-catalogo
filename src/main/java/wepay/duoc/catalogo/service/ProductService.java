@@ -1,70 +1,58 @@
 package wepay.duoc.catalogo.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import wepay.duoc.catalogo.model.Product;
+import wepay.duoc.catalogo.repository.PedidoDetalleRepository;
+import wepay.duoc.catalogo.repository.ProductRepository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.data.domain.Sort;
 
 @Service
+@Transactional
 public class ProductService {
-    private static final Logger log = LoggerFactory.getLogger(ProductService.class);
+	private final ProductRepository productRepository;
+	private final PedidoDetalleRepository pedidoDetalleRepository;
 
-    private final Map<Long, Product> store = new ConcurrentHashMap<>();
-    private final AtomicLong seq = new AtomicLong(1);
-
-    public ProductService() {
-        // Intentar cargar catálogo de ejemplo desde resources/catalogo-gamer.json
-        try (InputStream is = getClass().getResourceAsStream("/catalogo-gamer.json")) {
-            if (is != null) {
-                ObjectMapper mapper = new ObjectMapper();
-                Product[] products = mapper.readValue(is, Product[].class);
-                for (Product p : products) create(p);
-                log.info("Cargado catálogo de ejemplo con {} productos desde resources/catalogo-gamer.json", products.length);
-                return;
-            } else {
-                log.warn("No se encontró resources/catalogo-gamer.json — no se crearán productos por defecto.");
-            }
-        } catch (IOException e) {
-            log.error("Error leyendo catalogo-gamer.json: {}", e.getMessage());
-        }
-
-        // No crear productos genéricos por defecto para evitar confusión.
+	public ProductService(ProductRepository productRepository, PedidoDetalleRepository pedidoDetalleRepository) {
+		this.productRepository = productRepository;
+		this.pedidoDetalleRepository = pedidoDetalleRepository;
     }
 
     public List<Product> findAll() {
-        return new ArrayList<>(store.values());
+		return productRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     public Optional<Product> findById(Long id) {
-        return Optional.ofNullable(store.get(id));
+		return productRepository.findById(id);
     }
 
     public Product create(Product p) {
-        long id = seq.getAndIncrement();
-        p.setId(id);
-        store.put(id, p);
-        return p;
+		p.setId(null);
+		return productRepository.save(p);
     }
 
     public Optional<Product> update(Long id, Product p) {
-        if (!store.containsKey(id)) return Optional.empty();
-        p.setId(id);
-        store.put(id, p);
-        return Optional.of(p);
+        if (!productRepository.existsById(id)) {
+			return Optional.empty();
+		}
+		p.setId(id);
+		return Optional.of(productRepository.save(p));
     }
 
-    public boolean delete(Long id) {
-        return store.remove(id) != null;
+    public void delete(Long id) {
+		if (!productRepository.existsById(id)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Producto no encontrado");
+		}
+
+		if (pedidoDetalleRepository.existsByProductId(id)) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede eliminar el producto porque está asociado a un pedido");
+		}
+
+		productRepository.deleteById(id);
     }
 }
