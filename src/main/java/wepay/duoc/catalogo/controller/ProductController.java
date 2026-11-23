@@ -54,10 +54,15 @@ public class ProductController {
     }
 
     private Product toProduct(ProductRequest request) {
-        return new Product(null, request.name(), request.description(), request.price());
+        Product product = new Product(null, request.name(), request.description(), request.price());
+        product.setCategoria(request.categoria());
+        product.setImagenUrl(request.imagenUrl());
+        product.setPrecioAnterior(request.precioAnterior());
+        return product;
     }
 
     private ProductResponse toResponse(Product product) {
-        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice());
+        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(),
+                product.getCategoria(), product.getImagenUrl(), product.getPrecioAnterior());
     }
 }
