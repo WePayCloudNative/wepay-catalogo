@@ -16,6 +16,12 @@ public class Product {
     private String description;
     private double price;
 
+    // Datos para mostrar el producto en la tienda
+    private String categoria;
+    private String imagenUrl;
+    // Precio antes de la oferta (null si no está en oferta)
+    private Double precioAnterior;
+
     public Product() {}
 
     public Product(Long id, String name, String description, double price) {
@@ -55,5 +61,29 @@ public class Product {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
+    }
+
+    public Double getPrecioAnterior() {
+        return precioAnterior;
+    }
+
+    public void setPrecioAnterior(Double precioAnterior) {
+        this.precioAnterior = precioAnterior;
     }
 }
